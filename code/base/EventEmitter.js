@@ -152,6 +152,7 @@ define(function(){
     _initialize_:function(){
       var _this = this;
       _this._eventList = {};
+      _this._eventTriggerd_ = {};
       
       this.initialize && this.initialize.apply(this,arguments);
     },
@@ -181,11 +182,7 @@ define(function(){
         }
         for(var i = 0,len = list.length; i < len; i++){
           if(list[i] == fn || list[i] == fn.fn){
-            (function(i){
-              setTimeout(function(){
-                list.splice(i,1)
-              },1)
-            })(i);
+            list.splice(i,1)
             return;
           }
         }
@@ -207,21 +204,31 @@ define(function(){
         }
       }
     },
+    before:function(times,func){
+      var memo,_this = this;
+      return function() {
+        if (--times > 0) {
+          memo = func.apply(_this, arguments);
+        } else {
+          func = null;
+        }
+        return memo;
+      };
+    },
     once:function(type,fn){
       var _this = this;
       if(!type || !fn){
         return;
       }
-      var delefn = function(){
-        fn.apply(_this,arguments);
-        _this.off(type,delefn)
-      }
-      delefn.fn = fn;
-      _this.on(type,delefn);
+      _this.on(type,_this.before(2,fn));
     },
     destroy:function(){
       var _this =this;
       _this._eventList = null;
+    },
+    // 每次都触发,以前触发过再触发一次
+    always:function(){
+      
     }
   })
   

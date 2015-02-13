@@ -11,3 +11,35 @@
  *     基础浮层
  *     autoscroll
  */
+/*
+require("./cmd");
+require("./jquery");
+
+require("./EventEmitter");
+require("./Trans");
+// model view
+
+require("./template");
+require("./Model");
+require("./AView");
+require("./View");
+require("./ListView");
+
+require("./utils");
+
+ */
+;(function(){
+  // 绑定 
+  var config = {
+    "EventEmitter":require("./EventEmitter"),
+    "Trans":require("./Trans"),
+    "Model":require("./Model"),
+    "View":require("./View"),
+    "AView":require("./AView"),
+    "ListView":require("./ListView")
+  }
+  
+  for(var i in config){
+    $[i]= config[i];
+  }
+})();

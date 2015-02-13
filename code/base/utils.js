@@ -117,4 +117,3 @@ $.getLimitString = function(str,length,suffix){
   }
   return str;
 }
-define(function(){})

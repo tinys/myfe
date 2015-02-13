@@ -46,7 +46,7 @@ define(function(require){
          timeout:_this.opt.timeout,
          
       }).success(function(data){
-        if("code" in data){
+        if(data && "code" in data){
           if(data.code != 1){
             deffer.reject(data);
             return;
