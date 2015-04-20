@@ -11,15 +11,11 @@ define(function(require){
     initialize:function(option){
       var opt = {
         url:"",
-        method:"get",
-        dataType:"json",
+        type:"get",
         // ajax  jsonp iajax
-        type:"ajax",
-        args:{},
-        
-        // 默认数据
-        data:false
-      }
+        dataType:"json",
+        args:{}
+      };
       
       $.extend(opt,option);
       if(opt.url){
@@ -52,7 +48,7 @@ define(function(require){
       
       _this.opt = opt;
       _this.parse = _this.parse || opt.parse;
-      _this.trans = Trans(opt);
+      _this.trans = new Trans(opt);
     },
     fetch:function(args){
       this.request.apply(this,arguments);
@@ -60,7 +56,21 @@ define(function(require){
     _triggerSuccess_:function(data){
       var _this = this;
       data = _this.parse?_this.parse(data):data;
+      _this.data = data;
       _this.trigger("request",data);  
+    },
+    setData:function(data){
+      this._triggerSuccess_(data);
+    },
+    update:function(index){
+      this.trigger("update",index,this.data);
+    },
+    clearArgs:function(){
+      this.opt.args = {};
+      this.trans.clearArgs();
+    },
+    resetUrl:function(url){
+      this.trans.resetUrl(url);
     },
     request:function(args){
       var _this = this;
@@ -68,7 +78,6 @@ define(function(require){
       
       var _args = _this.opt.args;
       $.extend(_args,args);
-      
       function success(data){
        _this._triggerSuccess_(data,_args);
       }

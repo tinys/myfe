@@ -9,6 +9,12 @@ $.encodeHTML = function (source) {
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
 };
+$.decodeHTML = function(str){
+  if(!str){
+    return str;
+  }
+  return str.replace(/\n/g,"<br/>")
+}
 $.queryToJson = function(str,encode){
   if(!str){
     return{};
@@ -31,11 +37,15 @@ $.jsonToQuery = function(obj,encode){
   }
   return rs.join("&");
 }
-$.joinUrl = function(url,param){
+$.joinUrl = function(url,param,noHash){
   if(!url){
     url = location.href;
   }
-
+  if(!param){
+    return url;
+  }
+  var Url = $.parseURL(url);
+  
   var args = [];
   for(var i in param){
     if(!i){
@@ -43,23 +53,32 @@ $.joinUrl = function(url,param){
     }
     args.push(i+"="+encodeURIComponent(param[i]));
   }
-
-  if(url.indexOf("?")<0){
-    url +="?"
+  var query = Url.query?(Url.query+"&"+args.join("&")):args.join("&");
+  if(query){
+    query = "?"+query;
   }
-
-  return url + (url.indexOf("&")>=0?(url+"&"+args.join("&")):args.join("&"));
+  var path = Url.path;
+  if(path){
+    path = "/"+path;
+  }
+  var hash = noHash?"":(Url.hash?("#"+ Url.hash):"");
+  return Url.origin+path+query+hash;
 }
 $.parseURL = function(a){
   if(!a){
     return null;
   }
-  var b = /^(?:([A-Za-z]+):(\/{0,3}))?([0-9.\-A-Za-z]+\.[0-9A-Za-z]+)?(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/, 
-    c = ["url", "scheme", "slash", "host", "port", "path", "query", "hash"], 
+  var b = /^((?:([A-Za-z]+):(\/{0,3}))?([0-9.\-A-Za-z]+\.[0-9A-Za-z]+)?(?::(\d+))?)(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/, 
+    c = ["url","origin", "scheme", "slash", "host", "port", "path", "query", "hash"], 
     d = b.exec(a), e = {};
   for (var f = 0, g = c.length; f < g; f += 1)
       e[c[f]] = d[f] || "";
   return e;
+}
+$.getURL = function(url){
+  url = url || location.href;
+  // 去掉hash
+  return url.replace(/#.*/, '');
 }
 $.buildDate = function(date){
   if(typeof date == "string"){
@@ -117,3 +136,53 @@ $.getLimitString = function(str,length,suffix){
   }
   return str;
 }
+$.merge = function(opt,option){
+  if(!opt || !option){
+    return;
+  }
+  for(var i in opt){
+    if(option[i] != undefined){
+      opt[i] = option[i];
+    }
+  }
+}
+$.LS = (function(){
+  var that = {};
+  var LS = window.localStorage,
+      SS = window.sessionStorage;
+  that.save = function(key,val,session){
+    if(typeof val == "object"){
+      val = JSON.stringify(val);
+    }
+    try{
+      if(session){
+        SS.setItem(key,val);
+      }else{
+        LS.setItem(key,val);
+      }
+    }catch(e){
+      return false;
+    }
+    return true;
+  }
+  that.get = function(key,session,isRemove){
+    var val = null;
+    try{
+      if(session){
+        val = SS.getItem(key);
+        isRemove && SS.removeItem(key);
+      }else{
+        val = LS.getItem(key);
+        isRemove && LS.removeItem(key);
+      }
+    }catch(e){
+    }
+    return val;
+  }
+  that.shift = that.pop = function(key,session){
+    return that.get(key,session,true);
+  }
+  return that;
+})();
+// fixed zepto has not noop;
+$.noop = function(){};

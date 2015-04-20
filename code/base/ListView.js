@@ -14,6 +14,16 @@
 define(function(require){
   var View = require("./View")
   var ListView = View.extend({
+    initialize:function(opt){
+      var _this = this;
+      _this._super(opt);
+      
+      if(_this.model){
+        _this.model.on("update",function(index,data){
+          _this.update(index,data);
+        });
+      }
+    },
     events:{
       // 分页
       "click .actPage":"showPage"
@@ -30,6 +40,22 @@ define(function(require){
       
       // page
       _this.pageRender();
+    },
+    update:function(index,data){
+      var _this = this;
+      if(!_this.opt.child){
+        return;
+      }
+      var dom = _this.$el.find('[node-type="list"]');
+      
+      if(!dom.length){
+        dom = _this.$el;
+      }
+      data.args = _this.model.getArgs();
+      var html = _this.template.render(data);
+      var old = dom.find(_this.opt.child).get(index);
+      var newEle = $(html).find(_this.opt.child).get(index) ;
+      old.parentNode.replaceChild(newEle,old);
     },
     showloading:function(){
       var _this = this;
@@ -66,6 +92,9 @@ define(function(require){
       var _this =this;
       var target = $(e.target);
       var args = $.queryToJson(target.attr("act-data"));
+      if(_this.model.curArgs){
+        args = $.extend(_this.model.curArgs,args);
+      }
       _this.model.request(args);
       var st = _this.$el.position().top;
       $("html,body").animate({

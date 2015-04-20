@@ -149,12 +149,13 @@ define(function(){
    * 
    */
   var EventEmitter = Base.extend({
-    _initialize_:function(){
+    _initialize_:function(promise){
       var _this = this;
       _this._eventList = {};
       _this._eventTriggerd_ = {};
       
       this.initialize && this.initialize.apply(this,arguments);
+      this._promise_ = typeof promise === "boolean"?promise:false;
     },
     on:function(type,fn){
       if(!type || !fn){
@@ -195,6 +196,10 @@ define(function(){
       var _this = this;
       var args = Array.prototype.slice.call(arguments,1);
       
+      if(_this._promise_){
+        _this._eventTriggerd_[type] = args;
+      }
+      
       var list = _this._eventList[type];
       if(list && list.length){
         for(var i = 0 ; i < list.length;i++){
@@ -227,8 +232,20 @@ define(function(){
       _this._eventList = null;
     },
     // 每次都触发,以前触发过再触发一次
-    always:function(){
-      
+    always:function(type,fn){
+      var _this = this;
+      _this.on(type,fn);
+      if( _this._eventTriggerd_[type]){
+        fn.apply(null,_this._eventTriggerd_[type])
+      }
+    },
+    alwaysOnce:function(type,fn){
+      var _this = this;
+      if( _this._eventTriggerd_[type]){
+        fn.apply(null,_this._eventTriggerd_[type])
+      }else{
+        _this.once(type,fn);
+      }
     }
   })
   

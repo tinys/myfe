@@ -1,9 +1,7 @@
 /**
- * 链家fe基础类
+ * cmd规范注册
  * 1.模块注册
  * 2.模块配置
- * 
- * 
  * 3.透露模块信息，进行缓存
  * 
  */
@@ -338,7 +336,44 @@
       }
     })
   }
+  var Ready = (function(DOC){
+    var isReady = false;
+    
+    var _cbList_ = [];
+    
+    function _ready(){
+      if(isReady){
+        return;
+      }
+      isReady = true;
+      
+      var cb;
+      while(cb = _cbList_.shift()){
+        cb.apply(null);
+      }
+    }
+    if(/complete|loaded|interactive/.test(document.readyState) && document.body){
+      _ready();
+    }else{
+      window.addEventListener('DOMContentLoaded', _ready, false)
+    }
+    
+    return function(cb){
+      if(isReady){
+        cb.apply(null);
+      }else{
+        _cbList_.push(cb);
+      }
+    }
+  })(document);
+  
   function scriptLoader(option){
+    Ready(function(){
+      _scriptLoader(option);
+    })
+  }
+  
+  function _scriptLoader(option){
     var opt = {
       url:"",
       charset:"utf-8",
@@ -377,7 +412,7 @@
     script.onload = success;
     script.onerror = fail;
     script.onreadystatechange = function(state){
-      if(script.readyState == "complete"){
+      if(script.readyState == "complete" || script.readyState == "loaded"){
         success();
       }
     }

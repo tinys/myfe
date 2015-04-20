@@ -8,12 +8,10 @@
  *   2）mvc
  *   3）事件稀释
  *   4) ui相关 
- *     基础浮层
- *     autoscroll
  */
 /*
 require("./cmd");
-require("./jquery");
+require("../../../dep/zepto/zepto");
 
 require("./EventEmitter");
 require("./Trans");
@@ -29,6 +27,7 @@ require("./utils");
 
  */
 ;(function(){
+  
   // 绑定 
   var config = {
     "EventEmitter":require("./EventEmitter"),

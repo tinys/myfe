@@ -1,23 +1,57 @@
 /**
  * 请求封装，
- *  对接口进行统一处理
+ *  1.支持ajax  json请求
+ *  2.支持跨域请求
+ *  
  */
+
 define(function(require){
+   
+  var currentOrigin = $.parseURL(location.href).origin;
+  var XDRequest = require("../xd/XDRequest");
+  
+  
+  // var isSupportCORS = (function(){
+    // if ('withCredentials' in new XMLHttpRequest()) {
+        // /* supports cross-domain requests */
+       // return true;
+    // }
+    // else{
+      // // ie ?
+      // if(typeof XDomainRequest !== "undefined"){
+        // return true;
+      // }else{
+        // return false;
+      // }
+    // }
+  // });
+  var isSupportCORS = false;
   
   function Trans(option){
     // 兼容以前的Trans({})写法
     if(!(this instanceof Trans)){
       return new Trans(option);
     }
+    var _this = this;
     var opt = {
       url:"",
       method:"get",
       dataType:"json",
-      args:{},
-      type:"ajax" // ajax jsonp ijax
+      data:{},
+      timeout:30 * 1000
+    }
+    _this.opt = $.extend(opt,option);
+    
+    // 判断是否跨域
+    var url = $.parseURL(_this.opt.url);
+    // 判断是否同域名  以及是否支持ajax2跨域
+    if(url.origin && currentOrigin != url.origin && !isSupportCORS && this.opt.dataType != "jsonp"){
+      // TODO 跨域处理请求 xd 
+      _this.trans = XDRequest(url.origin);
+    }else{
+      _this.trans = $.ajax;
     }
     
-    this.opt = $.extend(opt,option);
     if(this.opt.type == "jsonp"){
       this.opt.dataType = "jsonp"
     }
@@ -36,41 +70,29 @@ define(function(require){
       
       var deffer = $.Deferred();
       var _this = this;
-      $.extend(_this.opt.args,args);
+      $.extend(_this.opt.data,args);
       
-      var ajax = $.ajax({
+      var ajax = _this.trans({
          url:_this.opt.url,
          type:_this.opt.method,
          dataType:_this.opt.dataType,
-         data:_this.opt.args,
-         timeout:_this.opt.timeout,
-         
-      }).success(function(data){
-        if(data && "code" in data){
-          if(data.code != 1){
-            deffer.reject(data);
-            return;
-          }
-          // 未登录
-          if(data.code == -1){
-            // 未登录
-            $.listener && $.listener.trigger("unlogin");
-            return;
-          }else if(data.data && !$.isArray(data.data)){
-            data = data.data
-          };
-        }
-        
-        
+         data:_this.opt.data,
+         timeout:_this.opt.timeout
+      }).done(function(data){
         deffer.resolve(data);
       }).fail(function(data){
          deffer.reject(data);
       });
-      
       return deffer;
     },
     setArgs:function(args){
       $.extend(this.opt.args,args);
+    },
+    resetUrl:function(url){
+      this.opt.url = url;
+    },
+    clearArgs:function(){
+      this.opt.data = {};
     }
   })
   

@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="yes" name="apple-touch-fullscreen"/>
+    <meta content="telephone=no,email=no" name="format-detection"/>
+    <title>图片转base64编码</title>
+    <style>
+      html,body{
+        margin:0;
+        padding:0;
+        font-size:14px;
+      }
+      textarea{
+        width:500px;
+        height:300px;
+        resize:none;
+      }
+      .import{
+        margin-left:30px;
+        margin-top:30px;
+      }
+      .uploadfile{
+        
+      }
+      .orupload{
+        position:relative;
+        display:inline-block;
+        height:32px;
+      }
+      .up-btn{
+        padding:8px 10px;
+        border:1px solid #008000;
+        background-color:#0CA84C;
+        border-radius:5px;
+        text-decoration: none;
+        color:#FFF;
+        margin:0 10px;
+        position:relative
+      }
+      .uploadfile{
+        opacity:0;
+        position:absolute;
+        width:100%;
+        height:100%;
+        left:0;
+        top:0;
+        z-index:1;
+      }
+      .flash{
+        border:1px solid #C32020;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="import">
+      <h1>将图片转化为base64位</h1>
+      粘贴图片或者直接将图片拖入：
+      <p><textarea autocomplete="off" id="valArea"></textarea></p>
+      <p class="orupload">你还可以<a href="javascript:;" class="up-btn">上传文件<input type="file" class="uploadfile"></a></p>
+    </div>
+    <script type="text/javascript" src="/dep/jquery-1.11/jquery.min.js"></script>
+    <script type="text/javascript">
+      var valArea = $("#valArea");
+      function handleFile(file){
+        if(!file){
+          return;
+        }
+        // 处理file 转化成base64位的
+        var fileReader = new FileReader();
+        fileReader.onloadend = function(){
+          valArea.val(fileReader.result);
+        }
+        fileReader.readAsDataURL(file);
+      }
+      document.addEventListener("drop", function( event ) {
+        event.preventDefault();
+        var files = event.dataTransfer.files;
+        if(files && files.length){
+          handleFile(files[0]);
+        }
+      }, false);
+      
+      $(".uploadfile").on("change",function(e){
+        var input =this;
+        var files = input.files;
+        if(files && files.length){
+          handleFile(files[0]);
+        }
+      })
+      valArea.on("paste",function(e){
+        e.preventDefault();
+        var items = e.originalEvent.clipboardData.items;
+        if(items && items.length){
+          var item = items[0];
+          if(item.kind == "file"){
+            handleFile(item.getAsFile());
+          }
+        }
+        return false;
+      })
+    </script>
+  </body>
+</html>

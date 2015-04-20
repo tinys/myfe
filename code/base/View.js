@@ -56,7 +56,7 @@ define(function(){
         template:"",
         
         url:"",
-        args:{},
+        data:{},
         method:"get",
         
         model:""
@@ -101,6 +101,7 @@ define(function(){
         }else{
           _this.template = opt.template;
         }
+        opt.template = null;
       }
     },
     events:{
