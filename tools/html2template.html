@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="yes" name="apple-touch-fullscreen"/>
+    <meta content="telephone=no,email=no" name="format-detection"/>
+    <title>html、css转化为string template</title>
+    <style>
+      html,body{
+        margin:0;padding:0;
+      }
+      textarea{
+        width:400px;
+        height:500px;
+      }
+      .btn{
+        padding:8px 10px;
+        border:1px solid #008000;
+        background-color:#0CA84C;
+        border-radius:5px;
+        text-decoration: none;
+        color:#FFF;
+        margin:0 10px;
+        position:relative
+      }
+      .input-source{
+        padding-left:15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="input-source">
+      <p>将源文件复制到左边</p>
+      <textarea id="source"></textarea>
+      <textarea id="dest"></textarea>
+    </div>
+    <p class="input-source">
+      <a href="#" class="btn">format</a>
+    </p>
+    <script type="text/javascript" src="/dep/jquery-1.11/jquery.min.js"></script>
+    <script type="text/javascript">
+      var source = $("#source"),
+          dest = $("#dest");
+      var spaceReg = /[\s\uFEFF\xA0]/;
+      function format(str){
+        var arr = str.split("\n");
+        var rs = [];
+        arr.forEach(function(a,i){
+          var startPoint = -1;
+          for(var j = 0 ; j < a.length;j++){
+            if(!spaceReg.test(a[j])){
+              startPoint = j;
+              break;
+            }
+          }
+          if(startPoint <0){
+            return;
+          }
+          a = a.substring(0,startPoint)+"'"+a.substring(startPoint)+"'";
+          
+          rs.push(a)
+        })
+        return rs.join("+\n");
+      }
+      
+      $(".btn").click(function(){
+        var formated = format(source.val());
+        $("#dest").val(formated);
+      });
+    </script>
+  </body>
+</html>
