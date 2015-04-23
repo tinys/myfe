@@ -1,20 +1,22 @@
 /**
- * 链家fe基础类
- * 1.模块注册
- * 2.模块配置
+ * cmd规范注册
  * 
+ * define 模块注册
+ * require 模块引用
  * 
- * 3.透露模块信息，进行缓存
+ * require引用分为两种。
+ * 1.直接引用require(modName);  这样会通过工具直接将js引入
+ * 2.异步引用require([modName],function(){}) 
  * 
+ * TODO 将模块进行缓存。
  */
-;(function(win){
+var define,require;
+;(function(){
   "use strict"
   
-  if(win.define){
+  if(typeof define != "undefined"){
     return;
   }
-  
-  var define,require;
   
   var _cache_ = {
   },
@@ -470,9 +472,7 @@
     };
   })();
   
-  win.define = define;
-  win.require = require;
   define.getBaseUrl = function(){
     return config.baseUrl;
   }
-})(typeof window?window:this);
+})();
