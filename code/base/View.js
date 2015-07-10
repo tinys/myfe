@@ -1,7 +1,11 @@
 /**
  * 视图
- * 
- * @classdesc 继承EventEmitter。实现试图 数据抓取，渲染模板，事件绑定功能。
+ *   基础视图，提供View和Model绑定。
+ *   实现的行为有 
+ *     1.actSetArgs 重新设置参数，参数变化后，将发送请求，可用来分页
+ *     2.actRefresh 刷新，当请求失败后会出现错误提示，可以刷新。
+ *  
+ * @classdesc 继承AView。实现试图 数据抓取，渲染模板，事件绑定功能。
  * @example
 var myView = new View({
   // container 
@@ -19,12 +23,11 @@ var myView = new View({
   // 数据源对象，如果不写，将通过上面的url args创建。view将监听起requeststart ,request fail事件
   model:"" 
 })
-// 初始化列表
-myView.init();
 // View 默认事件 重新设置参数
 <a class="actSetArgs" actData="p=1&filter=1"></a>
 // 刷新
 <a class="actRefresh"></a>
+
 
 
 // 创建新View 继承View.
@@ -41,12 +44,10 @@ var ListView = View.extend({
   actShow:function(e){
   }
 })
+
  */
 define(function(){
-  var Base = require("./EventEmitter"),
-      Trans = require("./Trans");
   var AView = require("./AView");
-  
   var Model = require("./Model")
   
   var View = AView.extend({
@@ -55,6 +56,7 @@ define(function(){
         el:"",
         template:"",
         
+        // 传递url 或者自定义model
         url:"",
         data:{},
         method:"get",
@@ -135,9 +137,8 @@ define(function(){
     render:function(data){
       var _this = this;
       _this.$el.html(_this.template.render(data));
-      
     },
-    loadingHTML:'<div class="loading">loading...</div>',
+    loadingHTML:'<div class="loading">加载中...</div>',
     failHTML:'<div class="fail">请求数据失败,请<a href="javascript:;" class="actRefresh">重试</a></div>',
     showloading:function(){
       var html = typeof this.loadingHTML == "function"?this.loadingHTML():this.loadingHTML;

@@ -15,6 +15,9 @@ $.decodeHTML = function(str){
   }
   return str.replace(/\n/g,"<br/>")
 }
+$.noneHTML = function(str){
+  return $("<div></div>").html(str).text();
+}
 $.queryToJson = function(str,encode){
   if(!str){
     return{};
@@ -71,6 +74,7 @@ $.parseURL = function(a){
   var b = /^((?:([A-Za-z]+):(\/{0,3}))?([0-9.\-A-Za-z]+\.[0-9A-Za-z]+)?(?::(\d+))?)(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/, 
     c = ["url","origin", "scheme", "slash", "host", "port", "path", "query", "hash"], 
     d = b.exec(a), e = {};
+  if(d)
   for (var f = 0, g = c.length; f < g; f += 1)
       e[c[f]] = d[f] || "";
   return e;
@@ -130,21 +134,64 @@ $.getLimitString = function(str,length,suffix){
   if(!str){
     return str;
   }
+  if($.bLength(str) < length){
+    return str;
+  }
   suffix = suffix || "..";
-  if(str.length >length){
-    str = str.substring(0,length)+suffix;
-  }
-  return str;
-}
-$.merge = function(opt,option){
-  if(!opt || !option){
-    return;
-  }
-  for(var i in opt){
-    if(option[i] != undefined){
-      opt[i] = option[i];
+  length = length - suffix.length;
+  
+  var totalLength = str.length,count;
+  var realLength = 0;
+  for (var i = 0; i < totalLength; i++) {
+    var code = str.charCodeAt(i);
+    if (code >= 0 && code <= 128) {
+      realLength += 1;
+    } else {
+      realLength += 2;
+    }
+    if(realLength >=length){
+      break;
     }
   }
+
+  return str.substring(0,i)+suffix;
+}
+$.bLength = function(str){
+  if (str == null) return 0;
+  if (typeof str != "string"){
+    str += "";
+  }
+  return str.replace(/[^x00-xff]/g,"01").length;
+}
+
+$.betweenTime = function(myTime,serverTime){
+  var before = $.buildDate(myTime),
+      serverTime =  $.buildDate(serverTime);
+  if(!serverTime || !before){
+    return "";
+  }
+  var distance = serverTime.getTime() - before.getTime();
+  if(distance <0){
+    return "将来"
+  }
+  distance = distance/1000;
+  if(distance < 60){
+    return "刚刚"
+  }
+  // 小于 一个小时，提示分钟 
+  if(distance < 3600){
+    return Math.floor(distance/60)+"分钟之前"
+  }
+  // 小于24小时，提示小时
+  if(distance < 86400){
+    return Math.floor(distance/3600)+"小时之前"
+  }
+  // 小于一个月，显示天
+  if(distance < 2592000){
+    return Math.floor(distance/86400)+"天前"
+  }
+  //大于一天，显示时间显示几天前
+  return $.formatDate(before,"yyyy-MM-dd");
 }
 $.LS = (function(){
   var that = {};
@@ -184,5 +231,58 @@ $.LS = (function(){
   }
   return that;
 })();
-// fixed zepto has not noop;
-$.noop = function(){};
+$.TextAreaUtil = (function(win){
+  var ds = document.selection;
+  var util = {
+    getCursorPosition : function(element) {
+      var result = 0;
+      
+      //处理兼容
+      if (ds) {
+        //ie
+        element.focus();
+        try{
+           var range = null;
+          range = ds.createRange();
+          var g = range.duplicate();
+          g.moveToElementText(element);
+          g.setEndPoint("EndToEnd", range);
+          
+          element.selectionStartIE = g.text.length - range.text.length;
+          element.selectionEndIE = element.selectionEndIE + range.text.length;
+          result = element.selectionStartIE;
+        }catch(e){
+          result = element.value.length;
+        }
+      } else {
+        //ff-chrome-opera
+        //加层判断
+        if (element.selectionStart || element.selectionStart == "0") {
+          //ff和opera多是element.value.length
+          //chrome
+          result = element.selectionStart;
+        }
+      }
+      return result;
+    },
+    getSelectedText : function(element) {
+      var result = "";
+      var find = function(el) {
+        if (el.selectionStart != undefined && el.selectionEnd != undefined) {
+          return el.value.slice(el.selectionStart, el.selectionEnd);
+        } else {
+          return "";
+        }
+      }
+      if (win.getSelection) {
+        //ff-chrome-opera
+        result = find(element);
+      } else {
+        //ie
+        result = document.selection.createRange().text;
+      }
+      return result;
+    }
+  }
+  return util;
+})(window);

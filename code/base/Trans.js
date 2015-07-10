@@ -1,16 +1,52 @@
 /**
+ * @Description
  * 请求封装，
- *  1.支持ajax  json请求
- *  2.支持跨域请求
+ *  1.支持ajax  jsonp请求
+ *  2.自动转化跨域模式，跨域支持见./xd/XDRequest
  *  
+ * 
+ * @example
+
+var Trans = require("Trans")
+
+var request = new Trans({
+  // 请求的url参数
+  url:"",
+  // 请求method  get post
+  method:"get",
+  // 返回数据类型  json  jsonp :将采用jsonp方式请求  html：请求的为html
+  dataType:"json",
+  // 请求参数
+  data:{},
+  // 超时时间，单位毫秒。
+  timeout:30*1000
+})
+
+// 发送请求  参数为 对象，
+// 请求返回的是 promise 方式
+request.request(args,option).done(function(data){
+  
+}).fail(function(data){
+  
+})
+
+// 重新设置url ：注意，重新设置url只能设置域名之后的路径。
+request.resetUrl(url)
+
+// 设置参数。
+request.setArgs(args)
+
+// 清空请求参数
+request.clearArgs();
+ * 
  */
 
 define(function(require){
    
   var currentOrigin = $.parseURL(location.href).origin;
-  var XDRequest = require("../xd/XDRequest");
+  var XDRequest = require("./xd/XDRequest");
   
-  
+  // 判断是否支持跨域
   // var isSupportCORS = (function(){
     // if ('withCredentials' in new XMLHttpRequest()) {
         // /* supports cross-domain requests */
@@ -76,6 +112,7 @@ define(function(require){
          url:_this.opt.url,
          type:_this.opt.method,
          dataType:_this.opt.dataType,
+         traditional:true,
          data:_this.opt.data,
          timeout:_this.opt.timeout
       }).done(function(data){
@@ -86,13 +123,21 @@ define(function(require){
       return deffer;
     },
     setArgs:function(args){
-      $.extend(this.opt.args,args);
+      $.extend(this.opt.data,args);
     },
     resetUrl:function(url){
       this.opt.url = url;
     },
-    clearArgs:function(){
-      this.opt.data = {};
+    clearArgs:function(args){
+      if(args){
+        for(var i in args){
+          if(this.opt.data[i]){
+            delete this.opt.data[i];
+          }
+        }
+      }else{
+        this.opt.data = {};
+      }
     }
   })
   

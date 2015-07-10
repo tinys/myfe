@@ -12,7 +12,7 @@
    <div node-type="list"></div>
  */
 define(function(require){
-  var View = require("./View")
+  var View = require("./View");
   var ListView = View.extend({
     initialize:function(opt){
       var _this = this;
@@ -26,7 +26,8 @@ define(function(require){
     },
     events:{
       // 分页
-      "click .actPage":"showPage"
+      "click .actPage":"showPage",
+      "click .actSetPage":"actSetPage"
     },
     render:function(data){
       // find list element
@@ -90,16 +91,43 @@ define(function(require){
     },
     showPage:function(e){
       var _this =this;
-      var target = $(e.target);
+      var target = $(e.currentTarget);
       var args = $.queryToJson(target.attr("act-data"));
       if(_this.model.curArgs){
         args = $.extend(_this.model.curArgs,args);
       }
       _this.model.request(args);
-      var st = _this.$el.position().top;
-      $("html,body").animate({
-        scrollTop:st
-      },300)
+//       
+      // var dom = _this.$el.find('[node-type="list"]');
+      // if(!dom.length){
+        // dom = _this.$el;
+      // }
+      // var st = dom.offset().top;
+      // $("html,body").animate({
+        // scrollTop:st
+      // },300)
+//       
+      return false;
+    },
+    actSetPage:function(e){
+      var target = $(e.currentTarget);
+      
+      var _this = this;
+       var input = target.parent().find("#pageInput_");
+       var args = {};
+       args[input.attr("name")] = input.val();
+       _this.model.request(args);
+       
+       // var dom = this.$el.find('[node-type="list"]');
+       // if(!dom.length){
+         // dom = _this.$el;
+       // }
+       // var st = dom.offset().top;
+       // $("html,body").animate({
+         // scrollTop:st
+       // },300)
+      
+       return false;
     },
     getDOM:function(){
       return this.$el;

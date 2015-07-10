@@ -1,8 +1,32 @@
 /**
- * 试图。
- *  基础事件绑定
+ * 抽象View（视图）。提供基础行为、事件绑定。
+ *  传入一个节点，提供基础行为绑定。
  * 
- *  
+ * @super EventEmitter
+ * @example
+ * 
+var view = new AView({
+  el:""
+});
+// 继承AView
+var View = AView.extend({
+  events:{
+    "click .actSetArgs":"actSetArgs"
+  },
+  actSetArgs:function(e){
+    var target = $(e.currentTarget);
+    alert($.queryToJson(target.attr("actData")).a);
+    return false;
+  }
+})
+
+<div id="view"><a class="actSetArgs" actData="a=1">test</a></div>
+var myView = new View({
+  el:"#view"
+})
+
+// 销毁视图，取消事件绑定。如果有自己行为，需要覆盖
+myView.destroy();
  */
 define(function(require){
   

@@ -1,7 +1,36 @@
 /**
  * 数据模型
- *  控制数据来源以及数据处理
+ *  提供数据封装，装载数据、保存数据。
  * 
+ * 初始化参照 Trans.
+ * 
+ * @example
+var model = new Model({
+  url:"",
+  type:"get",
+  // json  jsonp html
+  dataType:"json",
+  data:{}
+});
+
+// 事件
+requeststart 开始发送请求
+request 数据请求成功
+fail    数据请求失败
+
+// 拉去数据
+model.fetch(args);
+或者
+model.request(args);
+
+// 设置数据
+model.setData(data);
+
+// 更新数据，这个在mvvm框架中实现 view model 自己联动
+model.update(index,data);
+
+// 获得当前请求参数 对这个参数进行修改实际相当于 setArgs了
+model.getArgs();
  */
 define(function(require){
   var Base = require("./EventEmitter"),
@@ -12,43 +41,16 @@ define(function(require){
       var opt = {
         url:"",
         type:"get",
-        // ajax  jsonp iajax
+        // json  jsonp html
         dataType:"json",
-        args:{}
+        data:{}
       };
-      
       $.extend(opt,option);
-      if(opt.url){
-        var urlParsed = $.parseURL(opt.url);
-        var params = $.queryToJson(urlParsed.query);
-        $.extend(opt.args,params);
-        if(Object.keys(params).length){
-          var str = "";
-          if(urlParsed.scheme){
-            str+=urlParsed.scheme+":"
-          }
-          if(urlParsed.slash){
-            str+=urlParsed.slash
-          }
-          if(urlParsed.host){
-            str+=urlParsed.host
-          }
-          if(urlParsed.port){
-            str+=":"+urlParsed.port
-          }
-          if(urlParsed.path){
-            str+="/"+urlParsed.path
-          }
-          opt.url = str;
-        }
-      }
-      
       
       var _this = this;
       
       _this.opt = opt;
-      _this.parse = _this.parse || opt.parse;
-      _this.trans = new Trans(opt);
+      _this.opt.url && (_this.trans = new Trans(opt));
     },
     fetch:function(args){
       this.request.apply(this,arguments);
@@ -59,35 +61,41 @@ define(function(require){
       _this.data = data;
       _this.trigger("request",data);  
     },
+    // 对请求来的数据或者装载的数据进行解析，让他符合规范
+    parse:function(data){
+      return data;
+    },
+    // 填充数据
     setData:function(data){
       this._triggerSuccess_(data);
     },
     update:function(index){
       this.trigger("update",index,this.data);
     },
-    clearArgs:function(){
-      this.opt.args = {};
-      this.trans.clearArgs();
+    clearArgs:function(resetArgs){
+      this.trans.clearArgs(resetArgs);
     },
     resetUrl:function(url){
       this.trans.resetUrl(url);
     },
-    request:function(args){
+    request:function(args,resetArgs){
       var _this = this;
       _this.trigger("requeststart");
       
-      var _args = _this.opt.args;
-      $.extend(_args,args);
       function success(data){
-       _this._triggerSuccess_(data,_args);
+       _this._triggerSuccess_(data,_this.getArgs());
       }
       
       function fail(data){
         _this.trigger("fail",data);
       }
-     
       
-      return _this.trans.request(_args).done(function(data){
+      // 不需要的参数,避免参数叠加
+      if(resetArgs){
+        _this.trans.clearArgs(resetArgs);
+      }
+      
+      return _this.trans.request(args).done(function(data){
         success(data);
       }).fail(function(data){
         fail(data);
@@ -98,7 +106,7 @@ define(function(require){
 //       
     // },
     getArgs:function(){
-       return this.opt.args;
+       return this.trans ? this.trans.opt.data:{};
     },
     destroy:function(){
       var _this = this;
